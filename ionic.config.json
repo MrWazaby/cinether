@@ -1,0 +1,7 @@
+{
+  "name": "Cinether",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "vue"
+}
