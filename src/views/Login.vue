@@ -12,6 +12,7 @@
       <ion-button expand="block" color="light" ref="modal" id="open-register-modal"><ion-icon :icon="personAddOutline" class="ion-margin-end"></ion-icon> Register</ion-button>
       
       <ion-modal ref="modal" trigger="open-register-modal">
+        <ion-progress-bar type="indeterminate" v-if="loading"></ion-progress-bar>
         <ion-header>
           <ion-toolbar>
             <ion-buttons slot="start">
@@ -24,7 +25,6 @@
           </ion-toolbar>
         </ion-header>
         <ion-content class="ion-padding">
-          <ion-input placeholder="Username" v-model="username"></ion-input> 
           <ion-input placeholder="Email" type="email" v-model="email"></ion-input>
           <ion-input placeholder="Repeat email" type="email" v-model="emailCheck"></ion-input>
           <ion-input placeholder="Password" type="password" v-model="password"></ion-input>
@@ -41,14 +41,14 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonInput, IonIcon, IonModal, modalController, alertController } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonInput, IonIcon, IonModal, IonProgressBar, modalController, alertController } from '@ionic/vue';
 import { logInOutline, personAddOutline } from 'ionicons/icons';
 import { supabase } from '../supabase';
 import validator from 'validator';
 
 export default  defineComponent({
   name: 'LoginPage',
-  components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonInput, IonIcon, IonModal },
+  components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonInput, IonIcon, IonModal, IonProgressBar },
   setup() {
     return {
       logInOutline,
@@ -61,7 +61,8 @@ export default  defineComponent({
       email: "",
       emailCheck: "",
       password: "",
-      passwordCheck: ""
+      passwordCheck: "",
+      loading: false,
     }
   },
   methods: {
@@ -69,8 +70,8 @@ export default  defineComponent({
         await modalController.dismiss();
       },
       async register() {
+        this.loading = true
         try {
-          if(!validator.isAlphanumeric(this.username) || this.username.length < 4) throw new Error("Username must be alphanumeric and > 4 charcters.")
           if(!validator.isEmail(this.email)) throw new Error("Your email is invalid.")
           if(!validator.isStrongPassword(this.password)) throw new Error("Your password is not strong enought. You must have at least 8 characters, one lower case, one upper case, one number and one sepcial character.")
           if(this.email != this.emailCheck) throw new Error("The two emails does not match.")
@@ -78,10 +79,6 @@ export default  defineComponent({
           const { error } = await supabase.auth.signUp({
             email: this.email,
             password: this.password
-          },{
-            data: {
-              username: this.username,
-            }
           })
           if(error) throw error 
           const alert = await alertController.create({
@@ -91,6 +88,7 @@ export default  defineComponent({
             buttons: ['OK'],
           })
           await alert.present();
+          this.loading = false
           await modalController.dismiss();
 
         } catch(error: any) {
@@ -101,6 +99,7 @@ export default  defineComponent({
             buttons: ['OK'],
           })
           await alert.present();
+          this.loading = false
         }
       },
     }
