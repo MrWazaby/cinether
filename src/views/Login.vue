@@ -1,14 +1,15 @@
 <template>
   <ion-page>
+    <ion-progress-bar type="indeterminate" v-if="loading"></ion-progress-bar>
     <ion-header>
       <ion-toolbar>
         <ion-title>Cinether</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <ion-input placeholder="Email" type="email"></ion-input>
-      <ion-input placeholder="Password" type="password"></ion-input>
-      <ion-button expand="block"><ion-icon :icon="logInOutline" class="ion-margin-end"></ion-icon>Login</ion-button>
+      <ion-input placeholder="Email" type="email" v-model="email"></ion-input>
+      <ion-input placeholder="Password" type="password" v-model="password"></ion-input>
+      <ion-button expand="block" @click="login()"><ion-icon :icon="logInOutline" class="ion-margin-end"></ion-icon>Login</ion-button>
       <ion-button expand="block" color="light" ref="modal" id="open-register-modal"><ion-icon :icon="personAddOutline" class="ion-margin-end"></ion-icon> Register</ion-button>
       
       <ion-modal ref="modal" trigger="open-register-modal">
@@ -44,6 +45,7 @@ import { defineComponent } from 'vue';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonInput, IonIcon, IonModal, IonProgressBar, modalController, alertController } from '@ionic/vue';
 import { logInOutline, personAddOutline } from 'ionicons/icons';
 import { supabase } from '../supabase';
+import { store } from '../store';
 import validator from 'validator';
 
 export default  defineComponent({
@@ -57,7 +59,6 @@ export default  defineComponent({
   },
   data() {
     return {
-      username: "",
       email: "",
       emailCheck: "",
       password: "",
@@ -68,6 +69,30 @@ export default  defineComponent({
   methods: {
       async cancel() {
         await modalController.dismiss();
+      },
+      async login() {
+        this.loading = true
+        try {
+          const { error } = await supabase.auth.signIn({
+            email: this.email,
+            password: this.password,
+          })
+          if (error) throw error
+          store.user = supabase.auth.user()
+          this.email = ""
+          this.password = ""
+          this.$router.push('/tabs/tab1')
+          this.loading = false
+        } catch (error: any) {
+            const alert = await alertController.create({
+              header: 'Error',
+              subHeader: 'An error happend during the log in to your account',
+              message: error.error_description || error.message,
+              buttons: ['OK'],
+          })
+          await alert.present();
+          this.loading = false
+        }
       },
       async register() {
         this.loading = true
@@ -90,7 +115,10 @@ export default  defineComponent({
           await alert.present();
           this.loading = false
           await modalController.dismiss();
-
+          this.email = ""
+          this.emailCheck = ""
+          this.password = ""
+          this.passwordCheck = ""
         } catch(error: any) {
           const alert = await alertController.create({
             header: 'Error',
