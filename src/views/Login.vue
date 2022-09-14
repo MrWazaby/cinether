@@ -10,9 +10,10 @@
       <ion-input placeholder="Email" type="email" v-model="email"></ion-input>
       <ion-input placeholder="Password" type="password" v-model="password"></ion-input>
       <ion-button expand="block" @click="login()"><ion-icon :icon="logInOutline" class="ion-margin-end"></ion-icon>Login</ion-button>
-      <ion-button expand="block" color="light" ref="modal" id="open-register-modal"><ion-icon :icon="personAddOutline" class="ion-margin-end"></ion-icon> Register</ion-button>
+      <ion-button expand="block" color="light" id="open-register-modal"><ion-icon :icon="personAddOutline" class="ion-margin-end"></ion-icon> Register</ion-button>
+      <a href="#" id="open-reset-modal">I forgot my password</a> {{ type }}
       
-      <ion-modal ref="modal" trigger="open-register-modal">
+      <ion-modal trigger="open-register-modal">
         <ion-progress-bar type="indeterminate" v-if="loading"></ion-progress-bar>
         <ion-header>
           <ion-toolbar>
@@ -36,14 +37,34 @@
           <ion-button expand="block" @click="register()"><ion-icon :icon="personAddOutline" class="ion-margin-end"></ion-icon>Create account</ion-button>
         </ion-content>
       </ion-modal>
+
+      <ion-modal trigger="open-reset-modal">
+        <ion-progress-bar type="indeterminate" v-if="loading"></ion-progress-bar>
+        <ion-header>
+          <ion-toolbar>
+            <ion-buttons slot="start">
+              <ion-button @click="cancel()">Cancel</ion-button>
+            </ion-buttons>
+            <ion-title>Password reset</ion-title>
+            <ion-buttons slot="end">
+              <ion-button :strong="true" @click="reset()">Reset my password</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+          <ion-input placeholder="Email" type="email" v-model="email"></ion-input>
+          <ion-button expand="block" @click="reset()"><ion-icon :icon="refreshCircleOutline" class="ion-margin-end"></ion-icon>Reset my password</ion-button>
+        </ion-content>
+      </ion-modal>
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { useRoute } from 'vue-router'
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonInput, IonIcon, IonModal, IonProgressBar, modalController, alertController } from '@ionic/vue';
-import { logInOutline, personAddOutline } from 'ionicons/icons';
+import { logInOutline, personAddOutline, refreshCircleOutline } from 'ionicons/icons';
 import { supabase } from '../supabase';
 import { store } from '../store';
 import validator from 'validator';
@@ -52,9 +73,12 @@ export default  defineComponent({
   name: 'LoginPage',
   components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonInput, IonIcon, IonModal, IonProgressBar },
   setup() {
+    const router = useRoute()
+    console.log(router.params.accessToken)
     return {
       logInOutline,
-      personAddOutline
+      personAddOutline,
+      refreshCircleOutline
     }
   },
   data() {
@@ -64,6 +88,14 @@ export default  defineComponent({
       password: "",
       passwordCheck: "",
       loading: false,
+    }
+  },
+  props: {
+    accessToken: {
+      type: String
+    },
+    type: {
+      type: String
     }
   },
   methods: {
@@ -107,7 +139,7 @@ export default  defineComponent({
           })
           if(error) throw error 
           const alert = await alertController.create({
-            header: 'Sucess',
+            header: 'Success',
             subHeader: 'Your account is created!',
             message: 'Please check your email for validation. If you do not recieve the email you may already have an account on Cinether with this email.',
             buttons: ['OK'],
@@ -125,6 +157,32 @@ export default  defineComponent({
             subHeader: 'An error happend during the creation of your account',
             message: error.error_description || error.message,
             buttons: ['OK'],
+          })
+          await alert.present();
+          this.loading = false
+        }
+      },
+      async reset() {
+        this.loading = true
+        try {
+          const { data, error } = await supabase.auth.api.resetPasswordForEmail(this.email)
+          if (error) throw error
+          this.email = ""
+          const alert = await alertController.create({
+            header: 'Success',
+            subHeader: 'Check you mailbox!',
+            message: 'If an account with this email exists you will get a link to reset your password.',
+            buttons: ['OK'],
+          })
+          await alert.present();
+          this.loading = false
+          await modalController.dismiss();
+        } catch (error: any) {
+            const alert = await alertController.create({
+              header: 'Error',
+              subHeader: 'An error happend during the log in to your account',
+              message: error.error_description || error.message,
+              buttons: ['OK'],
           })
           await alert.present();
           this.loading = false
