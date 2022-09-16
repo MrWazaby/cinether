@@ -20,10 +20,9 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonInput, IonIcon, IonProgressBar, modalController, alertController } from '@ionic/vue';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonInput, IonIcon, IonProgressBar, alertController } from '@ionic/vue';
 import { refreshCircleOutline } from 'ionicons/icons';
 import { supabase } from '../supabase';
-import { store } from '../store';
 import validator from 'validator';
 
 export default  defineComponent({

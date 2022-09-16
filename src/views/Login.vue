@@ -11,7 +11,7 @@
       <ion-input placeholder="Password" type="password" v-model="password"></ion-input>
       <ion-button expand="block" @click="login()"><ion-icon :icon="logInOutline" class="ion-margin-end"></ion-icon>Login</ion-button>
       <ion-button expand="block" color="light" id="open-register-modal"><ion-icon :icon="personAddOutline" class="ion-margin-end"></ion-icon> Register</ion-button>
-      <a href="#" id="open-reset-modal">I forgot my password</a> {{ type }}
+      <a href="#" id="open-reset-modal">I forgot my password</a>
       
       <ion-modal trigger="open-register-modal">
         <ion-progress-bar type="indeterminate" v-if="loading"></ion-progress-bar>
