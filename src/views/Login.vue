@@ -62,7 +62,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { useRoute } from 'vue-router'
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonInput, IonIcon, IonModal, IonProgressBar, modalController, alertController } from '@ionic/vue';
 import { logInOutline, personAddOutline, refreshCircleOutline } from 'ionicons/icons';
 import { supabase } from '../supabase';
@@ -73,8 +72,6 @@ export default  defineComponent({
   name: 'LoginPage',
   components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonInput, IonIcon, IonModal, IonProgressBar },
   setup() {
-    const router = useRoute()
-    console.log(router.params.accessToken)
     return {
       logInOutline,
       personAddOutline,
@@ -165,7 +162,9 @@ export default  defineComponent({
       async reset() {
         this.loading = true
         try {
-          const { data, error } = await supabase.auth.api.resetPasswordForEmail(this.email)
+          const { error } = await supabase.auth.api.resetPasswordForEmail(this.email, {
+            redirectTo: `${process.env.VUE_APP_PUBLIC_SITE_URL}/reset-password`,
+          })
           if (error) throw error
           this.email = ""
           const alert = await alertController.create({

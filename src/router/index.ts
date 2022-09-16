@@ -8,6 +8,10 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('@/views/Login.vue')
   },
   {
+    path: '/reset-password/',
+    component: () => import("@/views/ResetPassword.vue")
+  },
+  {
     path: '/tabs/',
     component: TabsPage,
     children: [
