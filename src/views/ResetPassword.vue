@@ -7,7 +7,8 @@
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <ion-item>
+      <a href="/">Back home</a>
+      <ion-item class="ion-margin">
         <ion-label position="stacked">Reset your password</ion-label>
         <ion-input placeholder="Password" type="password" v-model="password"></ion-input>
         <ion-input placeholder="Repeat Password" type="password" v-model="passwordCheck"></ion-input>
@@ -33,24 +34,55 @@ export default  defineComponent({
       refreshCircleOutline
     }
   },
+  mounted() {
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event == 'PASSWORD_RECOVERY') {
+        if(session != null) {
+          this.accessToken = session["access_token"]
+        }
+      } 
+    })
+  },
   data() {
     return {
       password: "",
       passwordCheck: "",
+      accessToken: "",
       loading: false,
     }
   },
   methods: {
       async reset() {
         this.loading = true
-        const parsedParams = {};
-        this.$route.hash.split('&')
-          .map((part: string) => part.replace(/^#/, ''))
-          .forEach((param: string) => {
-            const parts = param.split('=');
-            parsedParams[parts[0]] = parts[1];
-          }); 
-        console.log(parsedParams)
+        try {
+          if(!validator.isStrongPassword(this.password)) throw new Error("Your password is not strong enought. You must have at least 8 characters, one lower case, one upper case, one number and one sepcial character.")
+          if(this.password != this.passwordCheck) throw new Error("The two passwords does not match.")
+          if(this.accessToken == "") throw new Error("Your reset link is invalid or expired.")
+          const { error } = await supabase.auth.api.updateUser(this.accessToken, {
+            password: this.password,
+          });
+          if(error) throw error
+          this.password = ""
+          this.passwordCheck = ""
+          const alert = await alertController.create({
+            header: 'Success',
+            subHeader: 'Your password is changed!',
+            message: 'You can now log in to your accont.',
+            buttons: ['OK'],
+          })
+          await alert.present();
+          this.loading = false
+          this.$router.push('/')
+        } catch(error: any) {
+            const alert = await alertController.create({
+              header: 'Error',
+              subHeader: 'An error happend during the reset of your password',
+              message: error.error_description || error.message,
+              buttons: ['OK'],
+            })
+          await alert.present();
+          this.loading = false
+        }         
       }
    }
 });

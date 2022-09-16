@@ -163,7 +163,7 @@ export default  defineComponent({
         this.loading = true
         try {
           const { error } = await supabase.auth.api.resetPasswordForEmail(this.email, {
-            redirectTo: `${process.env.VUE_APP_PUBLIC_SITE_URL}/reset-password`,
+            redirectTo: `${process.env.VUE_APP_PUBLIC_SITE_URL}/reset-password/`,
           })
           if (error) throw error
           this.email = ""
