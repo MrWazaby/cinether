@@ -3,17 +3,17 @@
     <ion-progress-bar type="indeterminate" v-if="loading"></ion-progress-bar>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Cinether</ion-title>
+        <ion-title>Settings</ion-title>
       </ion-toolbar>
     </ion-header>
     <ion-content class="ion-padding">
-      <ion-button size="small" color="medium" @click="$router.push('/')">Back home</ion-button>
+      <ion-button size="small" color="medium" @click="$router.push('/tabs/profiles')">Back</ion-button>
       <ion-item class="ion-margin">
-        <ion-label position="stacked">Reset your password</ion-label>
+        <ion-label position="stacked">Update your password</ion-label>
         <ion-input placeholder="Password" type="password" v-model="password"></ion-input>
         <ion-input placeholder="Repeat Password" type="password" v-model="passwordCheck"></ion-input>
       </ion-item>
-      <ion-button expand="block" @click="reset()"><ion-icon :icon="refreshCircleOutline" class="ion-margin-end"></ion-icon>Reset my password</ion-button>
+      <ion-button expand="block" @click="reset()"><ion-icon :icon="refreshCircleOutline" class="ion-margin-end"></ion-icon>Change my password</ion-button>
     </ion-content>
   </ion-page>
 </template>

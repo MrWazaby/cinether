@@ -82,21 +82,21 @@ export default defineComponent({
               text: 'Change my password',
               icon: lockOpen,
               handler: () => {
-                this.$router.push('/settings/password')
+                console.log('Change password clicked')
               },
             },
             {
               text: 'Change my pseudo',
               icon: idCard,
               handler: () => {
-                this.$router.push('/settings/username')
+                console.log('pseudo clicked')
               },
             },
             {
               text: 'Change my avatar',
               icon: camera,
               handler: () => {
-                this.$router.push('/settings/avatar')
+                console.log('avatar clicked')
               },
             },
             {
