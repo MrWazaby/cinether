@@ -954,6 +954,32 @@ COMMENT ON TABLE auth.users IS 'Auth: Stores user login data within a secure sch
 
 
 --
+-- Name: profiles; Type: TABLE; Schema: public; Owner: supabase_admin
+--
+
+CREATE TABLE public.profiles (
+    id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    username character varying DEFAULT 'Anonymous'::character varying NOT NULL,
+    avatar_url text,
+    followers uuid[],
+    following uuid[],
+    description text,
+    CONSTRAINT username_length CHECK ((char_length((username)::text) >= 3))
+);
+
+
+ALTER TABLE public.profiles OWNER TO supabase_admin;
+
+--
+-- Name: TABLE profiles; Type: COMMENT; Schema: public; Owner: supabase_admin
+--
+
+COMMENT ON TABLE public.profiles IS 'users profiles';
+
+
+--
 -- Name: buckets; Type: TABLE; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -1098,6 +1124,22 @@ ALTER TABLE ONLY auth.users
 
 ALTER TABLE ONLY auth.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: profiles profiles_pkey; Type: CONSTRAINT; Schema: public; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY public.profiles
+    ADD CONSTRAINT profiles_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: profiles profiles_username_key; Type: CONSTRAINT; Schema: public; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY public.profiles
+    ADD CONSTRAINT profiles_username_key UNIQUE (username);
 
 
 --
@@ -1292,6 +1334,14 @@ ALTER TABLE ONLY auth.sessions
 
 
 --
+-- Name: profiles profiles_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY public.profiles
+    ADD CONSTRAINT profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id);
+
+
+--
 -- Name: buckets buckets_owner_fkey; Type: FK CONSTRAINT; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -1313,6 +1363,61 @@ ALTER TABLE ONLY storage.objects
 
 ALTER TABLE ONLY storage.objects
     ADD CONSTRAINT objects_owner_fkey FOREIGN KEY (owner) REFERENCES auth.users(id);
+
+
+--
+-- Name: profiles Enable insert for users based on user id; Type: POLICY; Schema: public; Owner: supabase_admin
+--
+
+CREATE POLICY "Enable insert for users based on user id" ON public.profiles FOR INSERT TO authenticated WITH CHECK ((auth.uid() = id));
+
+
+--
+-- Name: profiles Enable update for users based on user id; Type: POLICY; Schema: public; Owner: supabase_admin
+--
+
+CREATE POLICY "Enable update for users based on user id" ON public.profiles FOR UPDATE TO authenticated USING ((auth.uid() = id)) WITH CHECK ((auth.uid() = id));
+
+
+--
+-- Name: profiles Public profiles are viewable by everyone logged in; Type: POLICY; Schema: public; Owner: supabase_admin
+--
+
+CREATE POLICY "Public profiles are viewable by everyone logged in" ON public.profiles FOR SELECT TO authenticated USING (true);
+
+
+--
+-- Name: profiles; Type: ROW SECURITY; Schema: public; Owner: supabase_admin
+--
+
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: objects Give create access to user's avatar; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE POLICY "Give create access to user's avatar" ON storage.objects FOR INSERT TO authenticated WITH CHECK (((bucket_id = 'avatars'::text) AND (lower((storage.foldername(name))[1]) = (auth.uid())::text) AND (storage.filename(name) = 'avatar.jpg'::text)));
+
+
+--
+-- Name: objects Give delete access to user's avatar; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE POLICY "Give delete access to user's avatar" ON storage.objects FOR DELETE TO authenticated USING (((bucket_id = 'avatars'::text) AND (lower((storage.foldername(name))[1]) = (auth.uid())::text) AND (storage.filename(name) = 'avatar.jpg'::text)));
+
+
+--
+-- Name: objects Give read access to user's avatar; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE POLICY "Give read access to user's avatar" ON storage.objects FOR SELECT TO authenticated USING (((bucket_id = 'avatars'::text) AND (lower((storage.foldername(name))[1]) = (auth.uid())::text) AND (storage.filename(name) = 'avatar.jpg'::text)));
+
+
+--
+-- Name: objects Give write access to user's avatar; Type: POLICY; Schema: storage; Owner: supabase_storage_admin
+--
+
+CREATE POLICY "Give write access to user's avatar" ON storage.objects FOR UPDATE TO authenticated USING (((bucket_id = 'avatars'::text) AND (lower((storage.foldername(name))[1]) = (auth.uid())::text) AND (storage.filename(name) = 'avatar.jpg'::text)));
 
 
 --
@@ -2044,6 +2149,16 @@ GRANT ALL ON SEQUENCE graphql.seq_schema_version TO service_role;
 --
 
 GRANT ALL ON TABLE pgsodium.valid_key TO pgsodium_keyiduser;
+
+
+--
+-- Name: TABLE profiles; Type: ACL; Schema: public; Owner: supabase_admin
+--
+
+GRANT ALL ON TABLE public.profiles TO postgres;
+GRANT ALL ON TABLE public.profiles TO anon;
+GRANT ALL ON TABLE public.profiles TO authenticated;
+GRANT ALL ON TABLE public.profiles TO service_role;
 
 
 --
