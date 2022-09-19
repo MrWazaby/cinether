@@ -1,116 +1,93 @@
 <template>
   <ion-page>
+    <ion-progress-bar type="indeterminate" v-if="loading"></ion-progress-bar>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Profiles</ion-title>
+        <ion-title>Settings</ion-title>
       </ion-toolbar>
     </ion-header>
-    <ion-content :fullscreen="true">
-      <ion-header collapse="condense">
-        <ion-toolbar>
-          <ion-title size="large">Profile</ion-title>
-        </ion-toolbar>
-      </ion-header>
-
-      <ion-searchbar placeholder="Search for a user"></ion-searchbar>
-      
-      <ion-card>
-        <ion-item>
-          <ion-avatar slot="start">
-            <img src="https://avatars.githubusercontent.com/u/7716380?v=4">
-          </ion-avatar>
-          <ion-label>Alexandre Martin</ion-label>
-          <ion-button fill="outline" slot="end" color="medium" @click="presentSettingsActionSheet">Settings</ion-button>
-        </ion-item>
-       
-        <ion-list>
-          <ion-item>
-            <ion-label>Followers</ion-label>
-            <ion-badge color="primary">22k</ion-badge>
-          </ion-item> 
-
-          <ion-item>
-            <ion-label>Following</ion-label>
-            <ion-badge color="secondary">158</ion-badge>
-          </ion-item>
-
-          <ion-item>
-            <ion-label>Proposed movies</ion-label>
-            <ion-badge color="tertiary">30</ion-badge>
-          </ion-item>
-
-          <ion-item>
-            <ion-label>Viewed movies</ion-label>
-            <ion-badge color="success">30</ion-badge>
-          </ion-item>
-
-          <ion-item>
-            <ion-label>Messages count</ion-label>
-            <ion-badge color="dark">300</ion-badge>
-          </ion-item>
-
-          <ion-item>
-            <ion-label>Member since</ion-label>
-            <ion-badge color="light">17/09/2022</ion-badge>
-          </ion-item>
-
-        </ion-list>
-
-        <ion-card-content>
-          User description
-        </ion-card-content>
-      </ion-card>
+    <ion-content class="ion-padding">
+      <ion-button size="small" color="medium" @click="$router.push('/tabs/profiles')">Back</ion-button>
+      <ion-item class="ion-margin">
+        <ion-label position="stacked">Update your avatar</ion-label>
+        <ion-input
+          type="file"
+          id="single"
+          accept="image/*"
+          @change="uploadAvatar"
+        />
+      </ion-item>
+      <ion-button expand="block" @click="reset()"><ion-icon :icon="refreshCircleOutline" class="ion-margin-end"></ion-icon>Change my avatar</ion-button>
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonButton, IonCard, IonAvatar, IonList, actionSheetController } from '@ionic/vue';
-import { idCard, close, camera, lockOpen } from 'ionicons/icons';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonInput, IonIcon, IonProgressBar, alertController } from '@ionic/vue';
+import { refreshCircleOutline } from 'ionicons/icons';
+import { supabase } from '../supabase';
+import validator from 'validator';
 
-export default defineComponent({
-  name: 'profiles-page',
-  components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonItem, IonLabel, IonButton, IonCard, IonAvatar, IonList },
-  methods: {
-    async presentSettingsActionSheet() {
-      const actionSheet = await actionSheetController
-        .create({
-          header: 'Settings',
-          buttons: [
-          {
-              text: 'Change my password',
-              icon: lockOpen,
-              handler: () => {
-                console.log('Change password clicked')
-              },
-            },
-            {
-              text: 'Change my pseudo',
-              icon: idCard,
-              handler: () => {
-                console.log('pseudo clicked')
-              },
-            },
-            {
-              text: 'Change my avatar',
-              icon: camera,
-              handler: () => {
-                console.log('avatar clicked')
-              },
-            },
-            {
-              text: 'Cancel',
-              icon: close,
-              role: 'cancel',
-              handler: () => {
-                console.log('Cancel clicked')
-              },
-            },
-          ],
-        });
-      await actionSheet.present();
-    },
+export default  defineComponent({
+  name: 'ResetPassword',
+  components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonInput, IonIcon, IonProgressBar },
+  setup() {
+    return {
+      refreshCircleOutline
+    }
   },
+  mounted() {
+    supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event == 'PASSWORD_RECOVERY') {
+        if(session != null) {
+          this.accessToken = session["access_token"]
+        }
+      } 
+    })
+  },
+  data() {
+    return {
+      password: "",
+      passwordCheck: "",
+      accessToken: "",
+      loading: false,
+    }
+  },
+  methods: {
+      async reset() {
+        this.loading = true
+        try {
+          if(!validator.isStrongPassword(this.password)) throw new Error("Your password is not strong enought. You must have at least 8 characters, one lower case, one upper case, one number and one sepcial character.")
+          if(this.password != this.passwordCheck) throw new Error("The two passwords does not match.")
+          if(this.accessToken == "") throw new Error("Your reset link is invalid or expired.")
+          const { error } = await supabase.auth.api.updateUser(this.accessToken, {
+            password: this.password,
+          });
+          if(error) throw error
+          this.password = ""
+          this.passwordCheck = ""
+          const alert = await alertController.create({
+            header: 'Success',
+            subHeader: 'Your password is changed!',
+            message: 'You can now log in to your accont.',
+            buttons: ['OK'],
+          })
+          await alert.present();
+          this.loading = false
+          this.$router.push('/')
+        } catch(error: any) {
+            const alert = await alertController.create({
+              header: 'Error',
+              subHeader: 'An error happend during the reset of your password',
+              message: error.error_description || error.message,
+              buttons: ['OK'],
+            })
+          await alert.present();
+          this.loading = false
+        }         
+      }
+   }
 });
+
 </script>

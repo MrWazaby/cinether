@@ -86,7 +86,7 @@ export default defineComponent({
               },
             },
             {
-              text: 'Change my pseudo',
+              text: 'Change my username',
               icon: idCard,
               handler: () => {
                 this.$router.push('/settings/username')
