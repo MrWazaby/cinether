@@ -584,6 +584,23 @@ $$;
 ALTER FUNCTION pgbouncer.get_auth(p_usename text) OWNER TO postgres;
 
 --
+-- Name: create_profile_for_new_user(); Type: FUNCTION; Schema: public; Owner: supabase_admin
+--
+
+CREATE FUNCTION public.create_profile_for_new_user() RETURNS trigger
+    LANGUAGE plpgsql SECURITY DEFINER
+    AS $$
+  BEGIN
+    INSERT INTO public.profiles (id)
+    VALUES (NEW.id);
+    RETURN NEW;
+  END;
+  $$;
+
+
+ALTER FUNCTION public.create_profile_for_new_user() OWNER TO supabase_admin;
+
+--
 -- Name: extension(text); Type: FUNCTION; Schema: storage; Owner: supabase_storage_admin
 --
 
@@ -1292,6 +1309,13 @@ CREATE UNIQUE INDEX bucketid_objname ON storage.objects USING btree (bucket_id, 
 --
 
 CREATE INDEX name_prefix_search ON storage.objects USING btree (name text_pattern_ops);
+
+
+--
+-- Name: users create_profile_on_signup; Type: TRIGGER; Schema: auth; Owner: supabase_auth_admin
+--
+
+CREATE TRIGGER create_profile_on_signup AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.create_profile_for_new_user();
 
 
 --
@@ -2011,6 +2035,16 @@ GRANT ALL ON FUNCTION pgbouncer.get_auth(p_usename text) TO pgbouncer;
 --
 
 GRANT ALL ON SEQUENCE pgsodium.key_key_id_seq TO pgsodium_keyiduser;
+
+
+--
+-- Name: FUNCTION create_profile_for_new_user(); Type: ACL; Schema: public; Owner: supabase_admin
+--
+
+GRANT ALL ON FUNCTION public.create_profile_for_new_user() TO postgres;
+GRANT ALL ON FUNCTION public.create_profile_for_new_user() TO anon;
+GRANT ALL ON FUNCTION public.create_profile_for_new_user() TO authenticated;
+GRANT ALL ON FUNCTION public.create_profile_for_new_user() TO service_role;
 
 
 --

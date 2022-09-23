@@ -95,6 +95,11 @@ export default  defineComponent({
       type: String
     }
   },
+  mounted() {
+    if(supabase.auth.session() !== null) {
+      this.$router.push('/tabs/tab1')
+    }
+  },
   methods: {
       async cancel() {
         await modalController.dismiss();

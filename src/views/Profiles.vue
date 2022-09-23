@@ -75,7 +75,6 @@ export default defineComponent({
   components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonItem, IonLabel, IonButton, IonCard, IonAvatar, IonList },
   methods: {
     async presentSettingsActionSheet() {
-      console.log(supabase.auth.session())
       const actionSheet = await actionSheetController
         .create({
           header: 'Settings',
