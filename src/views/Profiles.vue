@@ -67,13 +67,15 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonButton, IonCard, IonAvatar, IonList, actionSheetController } from '@ionic/vue';
-import { idCard, close, camera, lockOpen } from 'ionicons/icons';
+import { idCard, close, camera, lockOpen, logOutOutline } from 'ionicons/icons';
+import { supabase } from '../supabase';
 
 export default defineComponent({
   name: 'profiles-page',
   components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonItem, IonLabel, IonButton, IonCard, IonAvatar, IonList },
   methods: {
     async presentSettingsActionSheet() {
+      console.log(supabase.auth.session())
       const actionSheet = await actionSheetController
         .create({
           header: 'Settings',
@@ -99,6 +101,15 @@ export default defineComponent({
                 this.$router.push('/settings/avatar')
               },
             },
+            {
+              text: 'Log out',
+              icon: logOutOutline,
+              handler: async () => {
+                await supabase.auth.signOut()
+                this.$router.push('/')
+              },
+            },
+
             {
               text: 'Cancel',
               icon: close,
