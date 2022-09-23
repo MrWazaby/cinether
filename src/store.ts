@@ -1,5 +1,5 @@
 import { reactive } from 'vue'
 
-export const store: { user: unknown | null } = reactive({
-  user: {},
+export const store: { user_id: string | null } = reactive({
+  user_id: null,
 })

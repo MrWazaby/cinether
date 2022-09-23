@@ -27,6 +27,7 @@ import { defineComponent } from 'vue';
 import { IonTabBar, IonTabButton, IonTabs, IonLabel, IonIcon, IonPage, IonRouterOutlet } from '@ionic/vue';
 import { ellipse, triangle, peopleOutline } from 'ionicons/icons';
 import { supabase } from '../supabase'
+import { store } from '../store'
 
 export default defineComponent({
   name: 'TabsPage',
@@ -36,12 +37,6 @@ export default defineComponent({
       ellipse,  
       triangle,
       peopleOutline
-    }
-  },
-  mounted() {
-    console.log(supabase.auth.session())
-    if(supabase.auth.session() === null) {
-      this.$router.push("/")
     }
   }
 });

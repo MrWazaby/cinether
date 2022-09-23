@@ -19,19 +19,19 @@
           <ion-avatar slot="start">
             <img src="https://avatars.githubusercontent.com/u/7716380?v=4">
           </ion-avatar>
-          <ion-label>Alexandre Martin</ion-label>
+          <ion-label>{{ username }}</ion-label>
           <ion-button fill="outline" slot="end" color="medium" @click="presentSettingsActionSheet">Settings</ion-button>
         </ion-item>
        
         <ion-list>
           <ion-item>
             <ion-label>Followers</ion-label>
-            <ion-badge color="primary">22k</ion-badge>
+            <ion-badge color="primary">{{ followers }}</ion-badge>
           </ion-item> 
 
           <ion-item>
             <ion-label>Following</ion-label>
-            <ion-badge color="secondary">158</ion-badge>
+            <ion-badge color="secondary">{{ following }}</ion-badge>
           </ion-item>
 
           <ion-item>
@@ -51,7 +51,7 @@
 
           <ion-item>
             <ion-label>Member since</ion-label>
-            <ion-badge color="light">17/09/2022</ion-badge>
+            <ion-badge color="light">{{ createdAt }}</ion-badge>
           </ion-item>
 
         </ion-list>
@@ -73,7 +73,38 @@ import { supabase } from '../supabase';
 export default defineComponent({
   name: 'profiles-page',
   components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonItem, IonLabel, IonButton, IonCard, IonAvatar, IonList },
+  mounted() {
+    const user = supabase.auth.user()
+    if(user !== null) {
+      this.getProfile(user.id)
+    }
+  },
+  data() {
+    return {
+      username: "Loading",
+      createdAt: "Loading",
+      description: "Loading",
+      avatarUrl: "Loading",
+      followers: "Loading",
+      following: "Loading",
+      loading: false
+    }
+  },
   methods: {
+    async getProfile(id: string) {
+      try {
+        let { data, error, status } = await supabase
+              .from('profiles')
+              .select(`username, created_at, avatar_url, description, followers, following`)
+              .eq('id', id)
+              .single()
+
+        if (error && status !== 406) throw error
+        
+      } catch (error: any) {
+          alert(error.message)
+      }
+    },
     async presentSettingsActionSheet() {
       const actionSheet = await actionSheetController
         .create({
@@ -104,6 +135,7 @@ export default defineComponent({
               text: 'Log out',
               icon: logOutOutline,
               handler: async () => {
+                
                 await supabase.auth.signOut()
                 this.$router.push('/')
               },
