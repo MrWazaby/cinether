@@ -12,7 +12,7 @@
         <ion-label position="stacked">Update your username</ion-label>
         <ion-input placeholder="Username" type="text" v-model="username"></ion-input>
       </ion-item>
-      <ion-button expand="block" @click="reset()"><ion-icon :icon="refreshCircleOutline" class="ion-margin-end"></ion-icon>Change my username</ion-button>
+      <ion-button expand="block" @click="changeUsername()"><ion-icon :icon="refreshCircleOutline" class="ion-margin-end"></ion-icon>Change my username</ion-button>
     </ion-content>
   </ion-page>
 </template>
@@ -32,49 +32,45 @@ export default  defineComponent({
       refreshCircleOutline
     }
   },
-  mounted() {
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event == 'PASSWORD_RECOVERY') {
-        if(session != null) {
-          this.accessToken = session["access_token"]
-        }
-      } 
-    })
-  },
   data() {
     return {
-      password: "",
-      passwordCheck: "",
+      myID: "",
+      username: "",
       accessToken: "",
       loading: false,
     }
   },
+  mounted() {
+    const user = supabase.auth.user()
+    if(user !== null) {
+      this.myID = user.id
+    }
+  },
   methods: {
-      async reset() {
+      async changeUsername() {
         this.loading = true
         try {
-          if(!validator.isStrongPassword(this.password)) throw new Error("Your password is not strong enought. You must have at least 8 characters, one lower case, one upper case, one number and one sepcial character.")
-          if(this.password != this.passwordCheck) throw new Error("The two passwords does not match.")
-          if(this.accessToken == "") throw new Error("Your reset link is invalid or expired.")
-          const { error } = await supabase.auth.api.updateUser(this.accessToken, {
-            password: this.password,
-          });
+          if(!validator.isAlphanumeric(this.username)) throw new Error("Your username must be alphanumeric.")
+          if(3 > this.username.length && this.username.length < 30 ) throw new Error("Your username must have at least 3 chars and at most 30 chars.")
+          const { error } = await supabase
+          .from('profiles')
+          .update({ username: this.username })
+          .match({ id: this.myID })
           if(error) throw error
-          this.password = ""
-          this.passwordCheck = ""
+          this.username = ""
           const alert = await alertController.create({
             header: 'Success',
-            subHeader: 'Your password is changed!',
-            message: 'You can now log in to your accont.',
+            subHeader: 'Your user name is changed!',
+            message: 'You can change it at any time.',
             buttons: ['OK'],
           })
           await alert.present();
           this.loading = false
-          this.$router.push('/')
+          this.$router.push('/tabs/profiles')
         } catch(error: any) {
             const alert = await alertController.create({
               header: 'Error',
-              subHeader: 'An error happend during the reset of your password',
+              subHeader: 'An error happend during the change of your username.',
               message: error.error_description || error.message,
               buttons: ['OK'],
             })

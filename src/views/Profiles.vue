@@ -42,7 +42,7 @@
           </ion-item>
 
           <ion-item>
-            <ion-label>Viewed movies</ion-label>
+        <ion-label>Viewed movies</ion-label>
             <ion-badge color="success">30</ion-badge>
           </ion-item>
 
@@ -76,10 +76,11 @@ export default defineComponent({
   name: 'profiles-page',
   components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonItem, IonLabel, IonButton, IonCard, IonAvatar, IonList, IonProgressBar },
   mounted() {
-    const user = supabase.auth.user()
-    if(user !== null) {
-      this.myID = user.id
-      this.getProfile(user.id)
+    this.getMyID()
+  },
+  watch: {
+    "$route" () {
+      this.getMyID()
     }
   },
   data() {
@@ -98,6 +99,13 @@ export default defineComponent({
     }
   },
   methods: {
+    getMyID() {
+      const user = supabase.auth.user()
+      if(user !== null) {
+        this.myID = user.id
+        this.getProfile(user.id)
+      }
+    },
     async getProfile(id: string) {
       this.loading = true
       try {
@@ -108,7 +116,6 @@ export default defineComponent({
               .single()
 
         if (error && status !== 406) throw error
-
         if(data) {
           this.id = id
           this.username = data.username
