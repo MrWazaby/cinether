@@ -1,5 +1,6 @@
 <template>
   <ion-page>
+    <ion-progress-bar type="indeterminate" v-if="loading"></ion-progress-bar>
     <ion-header>
       <ion-toolbar>
         <ion-title>Profiles</ion-title>
@@ -67,13 +68,13 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonButton, IonCard, IonAvatar, IonList, actionSheetController } from '@ionic/vue';
-import { idCard, close, camera, lockOpen, logOutOutline } from 'ionicons/icons';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonButton, IonCard, IonAvatar, IonList, actionSheetController, IonProgressBar } from '@ionic/vue';
+import { idCard, close, camera, lockOpen, logOut, book } from 'ionicons/icons';
 import { supabase } from '../supabase';
 
 export default defineComponent({
   name: 'profiles-page',
-  components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonItem, IonLabel, IonButton, IonCard, IonAvatar, IonList },
+  components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonItem, IonLabel, IonButton, IonCard, IonAvatar, IonList, IonProgressBar },
   mounted() {
     const user = supabase.auth.user()
     if(user !== null) {
@@ -149,6 +150,13 @@ export default defineComponent({
               },
             },
             {
+              text: 'Change my description',
+              icon: book,
+              handler: () => {
+                this.$router.push('/settings/description')
+              },
+            },
+            {
               text: 'Change my avatar',
               icon: camera,
               handler: () => {
@@ -157,7 +165,7 @@ export default defineComponent({
             },
             {
               text: 'Log out',
-              icon: logOutOutline,
+              icon: logOut,
               handler: async () => {
                 
                 await supabase.auth.signOut()
