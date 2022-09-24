@@ -17,21 +17,22 @@
       <ion-card>
         <ion-item>
           <ion-avatar slot="start">
-            <img src="https://avatars.githubusercontent.com/u/7716380?v=4">
+            <img v-bind:src="avatarUrl">
           </ion-avatar>
           <ion-label>{{ username }}</ion-label>
-          <ion-button fill="outline" slot="end" color="medium" @click="presentSettingsActionSheet">Settings</ion-button>
+          <ion-button v-if="id === myID" fill="outline" slot="end" color="medium" @click="presentSettingsActionSheet">Settings</ion-button>
+          <ion-button v-else fill="outline" slot="end" color="primary" @click="presentSettingsActionSheet">Follow</ion-button>
         </ion-item>
        
         <ion-list>
           <ion-item>
             <ion-label>Followers</ion-label>
-            <ion-badge color="primary">{{ followers }}</ion-badge>
+            <ion-badge color="primary">{{ followersCount }}</ion-badge>
           </ion-item> 
 
           <ion-item>
             <ion-label>Following</ion-label>
-            <ion-badge color="secondary">{{ following }}</ion-badge>
+            <ion-badge color="secondary">{{ followingCount }}</ion-badge>
           </ion-item>
 
           <ion-item>
@@ -57,7 +58,7 @@
         </ion-list>
 
         <ion-card-content>
-          User description
+          {{ description }}
         </ion-card-content>
       </ion-card>
     </ion-content>
@@ -76,22 +77,28 @@ export default defineComponent({
   mounted() {
     const user = supabase.auth.user()
     if(user !== null) {
+      this.myID = user.id
       this.getProfile(user.id)
     }
   },
   data() {
     return {
-      username: "Loading",
-      createdAt: "Loading",
-      description: "Loading",
-      avatarUrl: "Loading",
-      followers: "Loading",
-      following: "Loading",
+      myID: "",
+      id: "",
+      username: "Loading...",
+      createdAt: "...",
+      description: "Loading...",
+      avatarUrl: "",
+      followers: [],
+      following: [],
+      followersCount: 0,
+      followingCount: 0,
       loading: false
     }
   },
   methods: {
     async getProfile(id: string) {
+      this.loading = true
       try {
         let { data, error, status } = await supabase
               .from('profiles')
@@ -100,9 +107,26 @@ export default defineComponent({
               .single()
 
         if (error && status !== 406) throw error
-        
+
+        if(data) {
+          this.id = id
+          this.username = data.username
+          const date = new Date(data.created_at)
+          this.createdAt = date.toLocaleDateString() 
+          this.description = data.description
+          if(data.avatar_url === null) data.avatar_url = "https://icotar.com/initials/" + encodeURI(this.username) + ".png"
+          this.avatarUrl = data.avatar_url
+          if(data.followers === null) data.followers = []
+          this.followers = data.followers
+          this.followersCount = this.followers.length
+          if(data.following === null) data.following = []
+          this.following = data.following
+          this.followingCount = this.following.length
+        }
       } catch (error: any) {
           alert(error.message)
+      } finally {
+        this.loading = false
       }
     },
     async presentSettingsActionSheet() {

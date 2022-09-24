@@ -26,8 +26,6 @@
 import { defineComponent } from 'vue';
 import { IonTabBar, IonTabButton, IonTabs, IonLabel, IonIcon, IonPage, IonRouterOutlet } from '@ionic/vue';
 import { ellipse, triangle, peopleOutline } from 'ionicons/icons';
-import { supabase } from '../supabase'
-import { store } from '../store'
 
 export default defineComponent({
   name: 'TabsPage',
