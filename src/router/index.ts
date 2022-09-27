@@ -50,6 +50,10 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/ChangeUsername.vue')
       },
       {
+        path: 'description',
+        component: () => import('@/views/ChangeDescription.vue')
+      },
+      {
         path: 'avatar',
         component: () => import('@/views/ChangeAvatar.vue')
       }

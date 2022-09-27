@@ -15,79 +15,76 @@
           id="single"
           accept="image/*"
           @change="uploadAvatar"
+          :disabled="loading"
         />
       </ion-item>
-      <ion-button expand="block" @click="reset()"><ion-icon :icon="refreshCircleOutline" class="ion-margin-end"></ion-icon>Change my avatar</ion-button>
     </ion-content>
   </ion-page>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonInput, IonIcon, IonProgressBar, alertController } from '@ionic/vue';
-import { refreshCircleOutline } from 'ionicons/icons';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonInput, IonProgressBar, alertController } from '@ionic/vue';
 import { supabase } from '../supabase';
 import validator from 'validator';
 
 export default  defineComponent({
   name: 'ResetPassword',
-  components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonInput, IonIcon, IonProgressBar },
-  setup() {
-    return {
-      refreshCircleOutline
-    }
-  },
+  components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonInput, IonProgressBar },
   mounted() {
-    supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event == 'PASSWORD_RECOVERY') {
-        if(session != null) {
-          this.accessToken = session["access_token"]
-        }
-      } 
-    })
+    const user = supabase.auth.user()
+      if(user !== null) {
+        this.myID = user.id
+      }
   },
   data() {
     return {
-      password: "",
-      passwordCheck: "",
-      accessToken: "",
+      myID: "",
       loading: false,
     }
   },
   methods: {
-      async reset() {
+    async uploadAvatar(evt: any) {
+      const values = evt.target.files
+      try {
         this.loading = true
-        try {
-          if(!validator.isStrongPassword(this.password)) throw new Error("Your password is not strong enought. You must have at least 8 characters, one lower case, one upper case, one number and one sepcial character.")
-          if(this.password != this.passwordCheck) throw new Error("The two passwords does not match.")
-          if(this.accessToken == "") throw new Error("Your reset link is invalid or expired.")
-          const { error } = await supabase.auth.api.updateUser(this.accessToken, {
-            password: this.password,
-          });
-          if(error) throw error
-          this.password = ""
-          this.passwordCheck = ""
+        if (!values || values.length === 0) throw new Error('You must select an image to upload.')
+
+        const file = values[0]
+        const fileExt = file.name.split('.').pop()
+        const fileName = "avatar.jpg"
+        const filePath = `${this.myID}/${fileName}`
+
+        if(fileExt !== "jpg") throw new Error("You can only upload jpg")
+
+        let { error: uploadError } = await supabase.storage
+          .from('avatars')
+          .upload(filePath, file, {
+            upsert: true
+          })
+        if (uploadError) throw uploadError
+        
+        const alert = await alertController.create({
+          header: 'Success',
+          subHeader: 'Your avatar is changed!',
+          message: 'You can change it at any time.',
+          buttons: ['OK'],
+        })
+        await alert.present();
+        this.loading = false
+        this.$router.push('/tabs/profiles')
+      }  catch(error: any) {
           const alert = await alertController.create({
-            header: 'Success',
-            subHeader: 'Your password is changed!',
-            message: 'You can now log in to your accont.',
+            header: 'Error',
+            subHeader: 'An error happend during the change of your avatar.',
+            message: error.error_description || error.message,
             buttons: ['OK'],
           })
-          await alert.present();
-          this.loading = false
-          this.$router.push('/')
-        } catch(error: any) {
-            const alert = await alertController.create({
-              header: 'Error',
-              subHeader: 'An error happend during the reset of your password',
-              message: error.error_description || error.message,
-              buttons: ['OK'],
-            })
-          await alert.present();
-          this.loading = false
-        }         
-      }
-   }
+        await alert.present();
+        this.loading = false
+      }         
+    }
+  }
 });
 
 </script>

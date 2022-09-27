@@ -106,6 +106,21 @@ export default defineComponent({
         this.getProfile(user.id)
       }
     },
+    async getAvatar() {
+      try {
+        const { data, error } = await supabase.storage
+            .from('avatars')
+            .download(`${this.myID}/avatar.jpg`)
+        if (error) throw error
+        if(data === null) {
+          throw new Error("Error while processing the avatar")
+        } else {
+          this.avatarUrl = URL.createObjectURL(data)
+        }
+      } catch (error: any) {
+          console.log('Error downloading image: ', error.message)
+      }
+    },
     async getProfile(id: string) {
       this.loading = true
       try {
@@ -122,8 +137,8 @@ export default defineComponent({
           const date = new Date(data.created_at)
           this.createdAt = date.toLocaleDateString() 
           this.description = data.description
-          if(data.avatar_url === null) data.avatar_url = "https://icotar.com/initials/" + encodeURI(this.username) + ".png"
-          this.avatarUrl = data.avatar_url
+          await this.getAvatar()
+          if(this.avatarUrl === "") this.avatarUrl = "https://icotar.com/initials/" + encodeURI(this.username) + ".png"
           if(data.followers === null) data.followers = []
           this.followers = data.followers
           this.followersCount = this.followers.length
