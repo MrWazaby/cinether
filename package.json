@@ -21,7 +21,7 @@
     "@supabase/supabase-js": "^1.35.6",
     "core-js": "^3.6.5",
     "validator": "^13.7.0",
-    "vue": "^3.2.21",
+    "vue": "^3.2.39",
     "vue-router": "^4.0.12"
   },
   "devDependencies": {
