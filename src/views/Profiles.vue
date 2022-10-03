@@ -91,8 +91,6 @@ export default defineComponent({
       createdAt: "...",
       description: "Loading...",
       avatarUrl: "",
-      followers: [],
-      following: [],
       followersCount: 0,
       followingCount: 0,
       loading: false
@@ -126,7 +124,7 @@ export default defineComponent({
       try {
         let { data, error, status } = await supabase
               .from('profiles')
-              .select(`username, created_at, avatar_url, description, followers, following`)
+              .select(`username, created_at, avatar_url, description`)
               .eq('id', id)
               .single()
 
@@ -138,13 +136,30 @@ export default defineComponent({
           this.createdAt = date.toLocaleDateString() 
           this.description = data.description
           await this.getAvatar()
-          if(this.avatarUrl === "") this.avatarUrl = "https://icotar.com/initials/" + encodeURI(this.username) + ".png"
-          if(data.followers === null) data.followers = []
-          this.followers = data.followers
-          this.followersCount = this.followers.length
-          if(data.following === null) data.following = []
-          this.following = data.following
-          this.followingCount = this.following.length
+          if(this.avatarUrl === "") this.avatarUrl = "https://icotar.com/initials/" + encodeURI(this.username) + ".png"  
+        }
+
+        let count
+        ({ error, count } = await supabase
+              .from('followers')
+              .select(`following_id`, { count: 'exact' })
+              .eq('follower_id', id)
+        )
+
+        if (error && status !== 406) throw error
+        if(count !== null) {
+          this.followingCount = count
+        }
+
+        ({ error, count } = await supabase
+              .from('followers')
+              .select(`follower_id`, { count: 'exact' })
+              .eq('following_id', id)
+        )
+
+        if (error && status !== 406) throw error
+        if(count !== null) {
+          this.followersCount = count
         }
       } catch (error: any) {
           alert(error.message)

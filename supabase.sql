@@ -971,6 +971,19 @@ COMMENT ON TABLE auth.users IS 'Auth: Stores user login data within a secure sch
 
 
 --
+-- Name: followers; Type: TABLE; Schema: public; Owner: supabase_admin
+--
+
+CREATE TABLE public.followers (
+    follower_id uuid NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    following_id uuid NOT NULL
+);
+
+
+ALTER TABLE public.followers OWNER TO supabase_admin;
+
+--
 -- Name: profiles; Type: TABLE; Schema: public; Owner: supabase_admin
 --
 
@@ -980,8 +993,6 @@ CREATE TABLE public.profiles (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     username character varying DEFAULT 'Anonymous'::character varying NOT NULL,
     avatar_url text,
-    followers uuid[],
-    following uuid[],
     description text,
     CONSTRAINT username_length CHECK ((char_length((username)::text) >= 3))
 );
@@ -1141,6 +1152,14 @@ ALTER TABLE ONLY auth.users
 
 ALTER TABLE ONLY auth.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: followers followers_pkey; Type: CONSTRAINT; Schema: public; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY public.followers
+    ADD CONSTRAINT followers_pkey PRIMARY KEY (follower_id, following_id);
 
 
 --
@@ -1358,6 +1377,22 @@ ALTER TABLE ONLY auth.sessions
 
 
 --
+-- Name: followers followers_follower_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY public.followers
+    ADD CONSTRAINT followers_follower_id_fkey FOREIGN KEY (follower_id) REFERENCES auth.users(id);
+
+
+--
+-- Name: followers followers_following_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: supabase_admin
+--
+
+ALTER TABLE ONLY public.followers
+    ADD CONSTRAINT followers_following_id_fkey FOREIGN KEY (following_id) REFERENCES auth.users(id);
+
+
+--
 -- Name: profiles profiles_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: supabase_admin
 --
 
@@ -1390,10 +1425,31 @@ ALTER TABLE ONLY storage.objects
 
 
 --
+-- Name: followers Enable delete for users based on user_id; Type: POLICY; Schema: public; Owner: supabase_admin
+--
+
+CREATE POLICY "Enable delete for users based on user_id" ON public.followers FOR DELETE TO authenticated USING ((auth.uid() = follower_id));
+
+
+--
+-- Name: followers Enable inser for users based on id; Type: POLICY; Schema: public; Owner: supabase_admin
+--
+
+CREATE POLICY "Enable inser for users based on id" ON public.followers FOR INSERT TO authenticated WITH CHECK ((auth.uid() = follower_id));
+
+
+--
 -- Name: profiles Enable insert for users based on user id; Type: POLICY; Schema: public; Owner: supabase_admin
 --
 
 CREATE POLICY "Enable insert for users based on user id" ON public.profiles FOR INSERT TO authenticated WITH CHECK ((auth.uid() = id));
+
+
+--
+-- Name: followers Enable read access for all auth users; Type: POLICY; Schema: public; Owner: supabase_admin
+--
+
+CREATE POLICY "Enable read access for all auth users" ON public.followers FOR SELECT TO authenticated USING (true);
 
 
 --
@@ -1409,6 +1465,12 @@ CREATE POLICY "Enable update for users based on user id" ON public.profiles FOR 
 
 CREATE POLICY "Public profiles are viewable by everyone logged in" ON public.profiles FOR SELECT TO authenticated USING (true);
 
+
+--
+-- Name: followers; Type: ROW SECURITY; Schema: public; Owner: supabase_admin
+--
+
+ALTER TABLE public.followers ENABLE ROW LEVEL SECURITY;
 
 --
 -- Name: profiles; Type: ROW SECURITY; Schema: public; Owner: supabase_admin
@@ -2183,6 +2245,16 @@ GRANT ALL ON SEQUENCE graphql.seq_schema_version TO service_role;
 --
 
 GRANT ALL ON TABLE pgsodium.valid_key TO pgsodium_keyiduser;
+
+
+--
+-- Name: TABLE followers; Type: ACL; Schema: public; Owner: supabase_admin
+--
+
+GRANT ALL ON TABLE public.followers TO postgres;
+GRANT ALL ON TABLE public.followers TO anon;
+GRANT ALL ON TABLE public.followers TO authenticated;
+GRANT ALL ON TABLE public.followers TO service_role;
 
 
 --

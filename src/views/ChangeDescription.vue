@@ -22,7 +22,6 @@ import { defineComponent } from 'vue';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonTextarea, IonIcon, IonProgressBar, alertController } from '@ionic/vue';
 import { refreshCircleOutline } from 'ionicons/icons';
 import { supabase } from '../supabase';
-import validator from 'validator';
 
 export default  defineComponent({
   name: 'changeDescription',

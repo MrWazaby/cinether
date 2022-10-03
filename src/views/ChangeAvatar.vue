@@ -26,7 +26,6 @@
 import { defineComponent } from 'vue';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonInput, IonProgressBar, alertController } from '@ionic/vue';
 import { supabase } from '../supabase';
-import validator from 'validator';
 
 export default  defineComponent({
   name: 'ResetPassword',
