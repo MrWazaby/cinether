@@ -13,7 +13,8 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-searchbar placeholder="Search for a user"></ion-searchbar>
+      <ion-searchbar placeholder="Search for a user" @ionInput="search = $event.target.value; onInput$.next($event.target.value)" @ionClear="searchCleared($event)"></ion-searchbar>
+      {{ search }}
       
       <ion-card>
         <ion-item>
@@ -42,7 +43,7 @@
           </ion-item>
 
           <ion-item>
-        <ion-label>Viewed movies</ion-label>
+            <ion-label>Viewed movies</ion-label>
             <ion-badge color="success">30</ion-badge>
           </ion-item>
 
@@ -62,6 +63,7 @@
           {{ description }}
         </ion-card-content>
       </ion-card>
+
     </ion-content>
   </ion-page>
 </template>
@@ -93,7 +95,8 @@ export default defineComponent({
       avatarUrl: "",
       followersCount: 0,
       followingCount: 0,
-      loading: false
+      loading: false,
+      search: "",
     }
   },
   methods: {
