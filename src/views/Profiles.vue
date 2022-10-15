@@ -21,14 +21,13 @@
         </ion-card-header>
 
         <ion-card-content>
-          <ion-item>
-            <ion-avatar slot="start">
-              <img alt="Silhouette of a person's head" src="https://ionicframework.com/docs/img/demos/avatar.svg" />
-            </ion-avatar>
-            <ion-label>
-              Avatar Item
-            </ion-label>
-          </ion-item>
+          <ion-list>
+            <ion-item v-for="user in searchResults" :key="user.id" @click="getProfile(user.id)">
+              <ion-label>
+                {{ user.username }}
+              </ion-label>
+            </ion-item>
+          </ion-list>
         </ion-card-content>
       </ion-card>
 
@@ -80,6 +79,8 @@
         </ion-card-content>
       </ion-card>
 
+      <ion-button v-if="id !== myID" fill="outline" color="medium" @click="getProfile(myID)" class="ion-margin">Back to my profile</ion-button>
+
     </ion-content>
   </ion-page>
 </template>
@@ -103,12 +104,14 @@ export default defineComponent({
     search(newSearch: string) {
       if(newSearch.length >= 3) {
         this.showSearch = true
+        this.searchUser(newSearch)
       } else {
         this.showSearch = false
       }
     }
   },
   data() {
+    let searchResults: any[] = []
     return {
       myID: "",
       id: "",
@@ -121,6 +124,7 @@ export default defineComponent({
       loading: false,
       search: "",
       showSearch: false,
+      searchResults: searchResults
     }
   },
   methods: {
@@ -131,11 +135,12 @@ export default defineComponent({
         this.getProfile(user.id)
       }
     },
-    async getAvatar() {
+    async getAvatar(id: string) {
+      this.avatarUrl = ""
       try {
         const { data, error } = await supabase.storage
             .from('avatars')
-            .download(`${this.myID}/avatar.jpg`)
+            .download(`${id}/avatar.jpg`)
         if (error) throw error
         if(data === null) {
           throw new Error("Error while processing the avatar")
@@ -148,21 +153,22 @@ export default defineComponent({
     },
     async getProfile(id: string) {
       this.loading = true
+      this.search = ""
       try {
         let { data, error, status } = await supabase
               .from('profiles')
-              .select(`username, created_at, avatar_url, description`)
+              .select()
               .eq('id', id)
               .single()
 
         if (error && status !== 406) throw error
         if(data) {
-          this.id = id
+          this.id = data.id
           this.username = data.username
           const date = new Date(data.created_at)
           this.createdAt = date.toLocaleDateString() 
           this.description = data.description
-          await this.getAvatar()
+          await this.getAvatar(id)
           if(this.avatarUrl === "") this.avatarUrl = "https://icotar.com/initials/" + encodeURI(this.username) + ".png"  
         }
 
@@ -193,6 +199,17 @@ export default defineComponent({
       } finally {
         this.loading = false
       }
+    },
+    async searchUser(search: string) {
+      this.loading = true
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, username')
+        .ilike('username', "%" + search + "%")
+      if(data) {
+        this.searchResults = data
+      }
+      this.loading = false
     },
     async presentSettingsActionSheet() {
       const actionSheet = await actionSheetController
