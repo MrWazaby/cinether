@@ -13,9 +13,25 @@
         </ion-toolbar>
       </ion-header>
 
-      <ion-searchbar placeholder="Search for a user" @ionInput="search = $event.target.value; onInput$.next($event.target.value)" @ionClear="searchCleared($event)"></ion-searchbar>
-      {{ search }}
+      <ion-searchbar placeholder="Search for a user" @ionInput="search = $event.target.value"></ion-searchbar>
       
+      <ion-card v-if="showSearch">
+        <ion-card-header>
+          <ion-card-subtitle>Search results</ion-card-subtitle>
+        </ion-card-header>
+
+        <ion-card-content>
+          <ion-item>
+            <ion-avatar slot="start">
+              <img alt="Silhouette of a person's head" src="https://ionicframework.com/docs/img/demos/avatar.svg" />
+            </ion-avatar>
+            <ion-label>
+              Avatar Item
+            </ion-label>
+          </ion-item>
+        </ion-card-content>
+      </ion-card>
+
       <ion-card>
         <ion-item>
           <ion-avatar slot="start">
@@ -83,6 +99,13 @@ export default defineComponent({
   watch: {
     "$route" () {
       this.getMyID()
+    },
+    search(newSearch: string) {
+      if(newSearch.length >= 3) {
+        this.showSearch = true
+      } else {
+        this.showSearch = false
+      }
     }
   },
   data() {
@@ -97,6 +120,7 @@ export default defineComponent({
       followingCount: 0,
       loading: false,
       search: "",
+      showSearch: false,
     }
   },
   methods: {
