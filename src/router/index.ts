@@ -16,7 +16,7 @@ const routes: Array<RouteRecordRaw> = [
     component: TabsPage,
     children: [
       {
-        path: '/',
+        path: '/tabs/',
         redirect: '/tabs/tab1',
       },
       {
@@ -28,8 +28,34 @@ const routes: Array<RouteRecordRaw> = [
         component: () => import('@/views/Tab2Page.vue')
       },
       {
-        path: 'tab3',
-        component: () => import('@/views/Tab3Page.vue')
+        path: 'profiles',
+        component: () => import('@/views/Profiles.vue')
+      }
+    ]
+  },
+  {
+    path: '/settings/',
+    component: TabsPage,
+    children: [
+      {
+        path: '/settings/',
+        redirect: '/tabs/profiles',
+      },
+      {
+        path: 'password',
+        component: () => import('@/views/ChangePassword.vue')
+      },
+      {
+        path: 'username',
+        component: () => import('@/views/ChangeUsername.vue')
+      },
+      {
+        path: 'description',
+        component: () => import('@/views/ChangeDescription.vue')
+      },
+      {
+        path: 'avatar',
+        component: () => import('@/views/ChangeAvatar.vue')
       }
     ]
   }

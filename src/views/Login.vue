@@ -65,7 +65,6 @@ import { defineComponent } from 'vue';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonInput, IonIcon, IonModal, IonProgressBar, modalController, alertController } from '@ionic/vue';
 import { logInOutline, personAddOutline, refreshCircleOutline } from 'ionicons/icons';
 import { supabase } from '../supabase';
-import { store } from '../store';
 import validator from 'validator';
 
 export default  defineComponent({
@@ -95,6 +94,11 @@ export default  defineComponent({
       type: String
     }
   },
+  mounted() {
+    if(supabase.auth.session() !== null) {
+      this.$router.push('/tabs/tab1')
+    }
+  },
   methods: {
       async cancel() {
         await modalController.dismiss();
@@ -107,7 +111,6 @@ export default  defineComponent({
             password: this.password,
           })
           if (error) throw error
-          store.user = supabase.auth.user()
           this.email = ""
           this.password = ""
           this.$router.push('/tabs/tab1')
