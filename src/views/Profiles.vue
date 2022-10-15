@@ -38,7 +38,7 @@
           </ion-avatar>
           <ion-label>{{ username }}</ion-label>
           <ion-button v-if="id === myID" fill="outline" slot="end" color="medium" @click="presentSettingsActionSheet">Settings</ion-button>
-          <ion-button v-else fill="outline" slot="end" color="primary" @click="presentSettingsActionSheet">Follow</ion-button>
+          <ion-button v-else fill="outline" slot="end" color="primary" @click="followUnfollow(id)">{{isFollowed}}</ion-button>
         </ion-item>
        
         <ion-list>
@@ -124,6 +124,7 @@ export default defineComponent({
       loading: false,
       search: "",
       showSearch: false,
+      isFollowed: "",
       searchResults: searchResults
     }
   },
@@ -170,8 +171,8 @@ export default defineComponent({
           this.description = data.description
           await this.getAvatar(id)
           if(this.avatarUrl === "") this.avatarUrl = "https://icotar.com/initials/" + encodeURI(this.username) + ".png"  
+          this.checkFollowed()
         }
-
         let count
         ({ error, count } = await supabase
               .from('followers')
@@ -210,6 +211,39 @@ export default defineComponent({
         this.searchResults = data
       }
       this.loading = false
+    },
+    async checkFollowed() {
+      const { error, count } = await supabase
+          .from('followers')
+          .select(`follower_id`, { count: 'exact' })
+          .eq('following_id', this.id)
+          .eq('follower_id', this.myID)
+
+      if (error) throw error
+      
+      if(count === 1) {
+        this.isFollowed = "Unfollow"
+      } else {
+        this.isFollowed = "Follow"
+      }
+    },
+    async followUnfollow(id: string) {
+      if(this.isFollowed == "Follow") {
+        const { error } = await supabase
+          .from("followers")
+          .insert({ follower_id: this.myID, following_id: id})
+        this.followersCount++
+        if(error) throw error
+      } else { 
+        const { error } = await supabase
+          .from("followers")
+          .delete()
+          .eq('following_id', this.id)
+          .eq('follower_id', this.myID)
+        this.followersCount--
+        if(error) throw error 
+      }
+      this.checkFollowed()
     },
     async presentSettingsActionSheet() {
       const actionSheet = await actionSheetController
