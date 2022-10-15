@@ -25,7 +25,7 @@ import { supabase } from '../supabase';
 import validator from 'validator';
 
 export default  defineComponent({
-  name: 'ResetPassword',
+  name: 'changeUsername',
   components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonInput, IonIcon, IonProgressBar },
   setup() {
     return {

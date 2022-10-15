@@ -28,7 +28,7 @@ import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonInput, IonProg
 import { supabase } from '../supabase';
 
 export default  defineComponent({
-  name: 'ResetPassword',
+  name: 'ChangeAvatar',
   components: { IonHeader, IonToolbar, IonTitle, IonContent, IonPage, IonInput, IonProgressBar },
   mounted() {
     const user = supabase.auth.user()
